@@ -23,6 +23,12 @@
 #         css - erstellt ein CSS-Dokument mit der Dateiendung ".css"
 #         php - erstellt ein PHP-Dokument mit der Dateiendung ".php"
 #
+#         CLASS - erstellt eine C++ Klasse bestehend aus einer .cpp und einer .h
+#                 Datei die bereits in der .cpp in inkludiert. Wenn vorhanden
+#                 werden diese Dateien in die src und headers Ordner eines breits
+#                 existierenden Projekts erstellt. Das Script muss dazu auf gleicher
+#                 Ebene wie die Ordner ausgefuehrt werden.
+#
 #         CPP - erstellt ein C++-Projekt dessen Struktur wie folgt aussieht:
 #             Name1
 #               |-src

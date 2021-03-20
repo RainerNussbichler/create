@@ -1,0 +1,261 @@
+#!/bin/bash
+
+###############################################################################
+#
+# Rainer Nussbichler - 2. April 2015
+#
+###############################################################################
+
+#------------------------------------------------------------------------------
+# Globale Variablen:
+#     Name: Diese Variable wird in den/die Kopfkommentare/n geschrieben.
+#         default: Angemeldeter Benutzer
+#     Datum:                        -''-
+#         default: Datum im Format: d. Monat YYYY
+#     Skriptname: ueber diese Variable wird das Skript rekursiv aufgerufen
+#         default: eruiert über die Laufzeitvariable $0 (/absoluter/Pfad/Bin)
+#     Pfad: in diesem werden die Templates im "templates" Ordner gesucht
+#         default: eruiert über die Laufzeitvariable $0 (/absoluter/Pfad/Bin)
+#------------------------------------------------------------------------------
+Name=$USER
+Datum=`date '+%d. %B %Y'`
+Skriptname=${0##*/}
+Pfad=${0%$Skriptname}
+
+#------------------------------------------------------------------------------
+# Falls man für das Skript einen falschen Syntax verwendet hat, öffnet diese
+# Funktion die Manpage.
+#------------------------------------------------------------------------------
+ausgabeSyntaxfehler()
+{
+	man create
+	exit -1
+}
+
+#------------------------------------------------------------------------------
+# Erzeugt eine Datei mit dem Namen (inkl. Dateiendung) die der Funktion als
+# mit dem ersten Parameter übergeben wurde. Der zweite Parameter ist der
+# Dateiname. Falls es ein Shellskript ist, erhält es keine Dateiendung.
+#------------------------------------------------------------------------------
+erzeugeDatei()
+{
+    if [ $# -eq 2 ]
+    then
+        if [ $1 == sh ]
+        then
+            [ -e ${Pfad}templates/template ] && \
+                cp ${Pfad}templates/template ./$2
+        else
+            [ -e ${Pfad}templates/template.$1 ] && \
+                cp ${Pfad}templates/template.$1 ./$2.$1
+        
+        fi
+        
+        [ -w ./$2.h ] && \
+            sed -i "s/TEMPLATE/${2^^}/g;s/classname/$2/g" ./$2.h
+        [ -w ./$2.$1 ] && \
+            sed -i "s/user/$Name/g;s/date/$Datum/g;s/template/$2/g" ./$2.$1
+        [ -w ./$2 ] && \
+            sed -i "s/user/$Name/g;s/date/$Datum/g;s/template/$2/g" ./$2
+
+    else
+        echo "ERROR: erzeugeDatei() erwartet genau zwei Parameter - Fehlercode: -1"
+        exit -1
+    fi
+}
+
+#------------------------------------------------------------------------------
+# erzeugt ein C++-Projekt
+#------------------------------------------------------------------------------
+erzeugeCppProjekt()
+{
+    if [ $# -eq 1 ] || [ $# -eq 2 ]
+    then
+        if [ -d $Pfad"templates/Cpp/" ]
+        then
+            cp -rd ${Pfad}templates/Cpp/ ./$1
+            
+            Klassenname=$1
+            [ $# -eq 2 ] && Klassenname=$2
+            
+            [ -w $1/src/main.cpp ] && \
+                sed -i "s/user/$Name/g;s/date/$Datum/g;s/classname/$Klassenname/g" $1/src/main.cpp
+            [ -w $1/src/classname.cpp ] && \
+                sed -i "s/user/$Name/g;s/date/$Datum/g;s/classname/$Klassenname/g" $1/src/classname.cpp
+            [ -w $1/headers/classname.h ] && \
+                sed -i "s/user/$Name/g;s/date/$Datum/g;s/CLASSNAME/${Klassenname^^}/g;s/classname/$Klassenname/g" \
+                    $1/headers/classname.h
+            [ -w $1/debug/makefile ] && \
+                sed -i "s/appname/$1/g;s/classname/$Klassenname/g" $1/debug/makefile
+            [ -e $1/headers/classname.h ] && mv $1/headers/classname.h $1/headers/$Klassenname.h
+            [ -e $1/src/classname.cpp ] && mv $1/src/classname.cpp $1/src/$Klassenname.cpp
+        
+        else
+            echo "ERROR: Ordner \"$Pfad\"templates/Cpp/\" nicht vorhanden - Fehlercode: -2"
+            exit -2
+        
+        fi
+    
+    else
+        echo "ERROR: erzeugeCppProjekt() erwartet genau einen oder zwei Parameter - Fehlercode: -3"
+        exit -3
+    
+    fi
+}
+
+#------------------------------------------------------------------------------
+# erzeugt ein WEB-Projekt
+#------------------------------------------------------------------------------
+erzeugeWebProjekt()
+{
+    if [ $# -eq 1 ]
+    then
+        if [ -d $Pfad"templates/Web/" ]
+        then
+            cp -rd ${Pfad}templates/Web/ ./$1
+        
+        else
+            echo "ERROR: Ordner \"$Pfad\"templates/Cpp/\" nicht vorhanden - Fehlercode: -4"
+            exit -4
+        
+        fi 
+    
+    else
+        echo "ERROR: erzeugeWebProjekt() erwartet genau einen Parameter - Fehlercode: -5"
+        exit -5
+    
+    fi
+}
+
+#------------------------------------------------------------------------------
+# erzeugt ein QT-Projekt
+#------------------------------------------------------------------------------
+erzeugeQtProjekt()
+{
+    if [ $# -eq 1 ]
+    then
+        if [ -d $Pfad"templates/Qt/" ]
+        then
+            cp -rd ${Pfad}templates/Qt/ ./$1
+            [ -w $1/proname.pro ] && sed -i "s/appname/$1/g" $1/proname.pro
+            [ -e $1/template.pro ] && mv $1/template.pro $1/$1.pro
+            [ -w $1/headers/gui.h ] && \
+                sed -i "s/user/$Name/g;s/date/$Datum/g" $1/headers/gui.h
+            [ -w $1/src/main.cpp ] && \
+                sed -i "s/user/$Name/g;s/date/$Datum/g" $1/src/main.cpp
+            [ -w $1/src/gui.cpp ] && \
+                sed -i "s/user/$Name/g;s/date/$Datum/g" $1/src/gui.cpp
+        
+        else
+            echo "ERROR: Ordner \"$Pfad\"templates/Cpp/\" nicht vorhanden - Fehlercode: -6"
+            exit -6
+        
+        fi
+    
+    else
+        echo "ERROR: erzeugeQtProjekt() erwartet genau einen Parameter - Fehlercode: -7"
+        exit -7
+    
+    fi
+}
+
+#------------------------------------------------------------------------------
+# Eigentlicher Skriptablauf:
+#------------------------------------------------------------------------------
+# Falls kein Parameter an das Skript übergeben wurde oder der erste Parameter falsch
+# ist, wird die Funktion "ausgabeSyntaxfehler" aufgerufen und das Skript abgebrochen.
+# Ansonsten wird die Variablen für die Dateiendung des zukünftigen Dokumentes befüllt.
+#------------------------------------------------------------------------------
+if [ $# -eq 0 ]
+then
+    ausgabeSyntaxfehler
+
+else
+    if [ $1 == -sh ] || [ $1 == -cpp ] || \
+      	[ $1 == -h ] || [ $1 == -html ] || \
+       	[ $1 == -css ] || [ $1 == -php ] || \
+       	[ $1 == -CPP ] || [ $1 == -WEB ]|| \
+       	[ $1 == -QT ]
+    then
+        if [ $1 == -CPP ]
+        then
+            if [ $# -eq 3 ]
+            then
+                erzeugeCppProjekt $2 $3
+                exit 0
+
+            elif [ $# -eq 2 ]
+            then
+                erzeugeCppProjekt $2
+                exit 0
+
+            elif [ $# -eq 1 ]
+            then
+                erzeugeCppProjekt unnnamed
+                exit 0
+
+            else
+                ausgabeSyntaxfehler
+
+            fi
+
+        elif [ $1 == -WEB ]
+        then
+            if [ $# -eq 2 ]
+            then
+                erzeugeWebProjekt $2
+                exit 0
+
+            elif [ $# -eq 1 ]
+            then
+                erzeugeWebProjekt unnnamed
+                exit 0
+
+            else
+                ausgabeSyntaxfehler
+
+            fi
+        
+        elif [ $1 == -QT ]
+        then
+            if [ $# -eq 2 ]
+            then
+                erzeugeQtProjekt $2
+                exit 0
+
+            elif [ $# -eq 1 ]
+            then
+                erzeugeQtProjekt unnnamed
+                exit 0
+
+            else
+                ausgabeSyntaxfehler
+
+            fi
+            
+        else
+            if [ $# -gt 1 ]
+	        then
+	            # Wenn ein Name oder mehrere Namen übergeben wurde, werden alle
+	            # Dokumente in einer Schleife erzeugt.
+	            for ((i=2; i<=$#; i++))
+		        do
+			        Dateiname=${!i}
+                    erzeugeDatei ${1#-} $Dateiname
+		        done
+		        
+		    else
+		        # Wenn kein Name übergeben wurde, wird nur ein Dokument mit dem
+		        # Dateinamen "unnamed" erzeugt.
+		        erzeugeDatei ${1#-} unnamed
+		        
+		    fi
+	    
+        fi
+        
+    else
+        ausgabeSyntaxfehler
+
+    fi
+
+fi

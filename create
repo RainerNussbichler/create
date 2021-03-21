@@ -164,7 +164,8 @@ erzeugeQtProjekt()
 #------------------------------------------------------------------------------
 # Falls kein Parameter an das Skript übergeben wurde oder der erste Parameter falsch
 # ist, wird die Funktion "ausgabeSyntaxfehler" aufgerufen und das Skript abgebrochen.
-# Ansonsten wird die Variablen für die Dateiendung des zukünftigen Dokumentes befüllt.
+# Ansonsten werden die entsprechenden Funktionen zum Erstellen der Projekte oder
+# Dateien aufgerufen
 #------------------------------------------------------------------------------
 if [ $# -eq 0 ]
 then

@@ -113,9 +113,16 @@ erzeugeWebProjekt()
         if [ -d $Pfad"templates/Web/" ]
         then
             cp -rd ${Pfad}templates/Web/ ./$1
+            [ -w $1/index.html ] && sed -i "s/template/$1/g" $1/index.html
+            [ -w $1/js/example.js ] && \
+                sed -i "s/user/$Name/g;s/date/$Datum/g" $1/js/example.js
+            [ -w $1/php/example.php ] && \
+                sed -i "s/user/$Name/g;s/date/$Datum/g" $1/php/example.php
+            [ -w $1/css/style.css ] && \
+                sed -i "s/user/$Name/g;s/date/$Datum/g" $1/css/style.css
         
         else
-            echo "ERROR: Ordner \"$Pfad\"templates/Cpp/\" nicht vorhanden - Fehlercode: -4"
+            echo "ERROR: Ordner \"$Pfad\"templates/Web/\" nicht vorhanden - Fehlercode: -4"
             exit -4
         
         fi 
@@ -147,7 +154,7 @@ erzeugeQtProjekt()
                 sed -i "s/user/$Name/g;s/date/$Datum/g" $1/src/gui.cpp
         
         else
-            echo "ERROR: Ordner \"$Pfad\"templates/Cpp/\" nicht vorhanden - Fehlercode: -6"
+            echo "ERROR: Ordner \"$Pfad\"templates/Qt/\" nicht vorhanden - Fehlercode: -6"
             exit -6
         
         fi
@@ -175,8 +182,8 @@ else
     if [ $1 == -sh ] || [ $1 == -cpp ] || \
       	[ $1 == -h ] || [ $1 == -html ] || \
        	[ $1 == -css ] || [ $1 == -php ] || \
-       	[ $1 == -CPP ] || [ $1 == -WEB ]|| \
-       	[ $1 == -QT ]
+       	[ $1 == -CPP ] || [ $1 == -WEB ] || \
+       	[ $1 == -QT ] || [ $1 == -js ]
     then
         if [ $1 == -CPP ]
         then
